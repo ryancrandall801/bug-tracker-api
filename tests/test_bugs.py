@@ -98,3 +98,91 @@ def test_get_bug_by_id_returns_404_for_missing_bug():
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Bug with id 999 not found"}
+
+def test_patch_bug_updates_status():
+    reset_bug_store()
+
+    create_response = client.post(
+        "/bugs",
+        json={
+            "title": "Status bug",
+            "description": "Needs update",
+            "priority": "medium",
+        },
+    )
+
+    bug_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/bugs/{bug_id}",
+        json={"status": "resolved"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == bug_id
+    assert response.json()["status"] == "resolved"
+    assert response.json()["title"] == "Status bug"
+
+
+def test_patch_bug_updates_multiple_fields():
+    reset_bug_store()
+
+    create_response = client.post(
+        "/bugs",
+        json={
+            "title": "Old title",
+            "description": "Old description",
+            "priority": "low",
+        },
+    )
+
+    bug_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/bugs/{bug_id}",
+        json={
+            "title": "New title",
+            "priority": "critical",
+            "status": "in_progress",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "New title"
+    assert response.json()["priority"] == "critical"
+    assert response.json()["status"] == "in_progress"
+    assert response.json()["description"] == "Old description"
+
+
+def test_patch_bug_returns_404_for_missing_bug():
+    reset_bug_store()
+
+    response = client.patch(
+        "/bugs/999",
+        json={"status": "closed"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Bug with id 999 not found"}
+
+
+def test_patch_bug_rejects_invalid_status():
+    reset_bug_store()
+
+    create_response = client.post(
+        "/bugs",
+        json={
+            "title": "Validation bug",
+            "description": "Try invalid status",
+            "priority": "high",
+        },
+    )
+
+    bug_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/bugs/{bug_id}",
+        json={"status": "done"},
+    )
+
+    assert response.status_code == 422

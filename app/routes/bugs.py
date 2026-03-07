@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from app.models import BugCreate, BugResponse
+from app.models import BugCreate, BugResponse, BugUpdate
 
 router = APIRouter(prefix="/bugs", tags=["bugs"])
 
@@ -34,6 +34,23 @@ def get_bugs():
 def get_bug_by_id(bug_id: int):
     for bug in bugs_db:
         if bug["id"] == bug_id:
+            return bug
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Bug with id {bug_id} not found",
+    )
+
+
+@router.patch("/{bug_id}", response_model=BugResponse)
+def update_bug(bug_id: int, bug_update: BugUpdate):
+    for bug in bugs_db:
+        if bug["id"] == bug_id:
+            update_data = bug_update.model_dump(exclude_unset=True)
+
+            for key, value in update_data.items():
+                bug[key] = value
+
             return bug
 
     raise HTTPException(
