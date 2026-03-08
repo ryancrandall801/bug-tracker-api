@@ -1,4 +1,6 @@
-Bug Tracker API
+# Bug Tracker API
+
+[![Python Tests](https://github.com/ryancrandall801/bug-tracker-api/actions/workflows/python-tests.yml/badge.svg)](https://github.com/ryancrandall801/bug-tracker-api/actions)
 
 A small REST API built with FastAPI and pytest to practice API design and automated API testing.
 
