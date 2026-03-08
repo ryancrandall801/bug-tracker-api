@@ -6,35 +6,36 @@ A small REST API built with FastAPI and pytest to practice API design and automa
 
 This project implements a simple bug tracking service with full CRUD functionality and automated tests.
 
-The goal of the project is to better understand:
+---
 
-REST API design
+# Goals
 
-HTTP methods and status codes
+The goal of this project is to better understand:
 
-request validation
+- REST API design
+- HTTP methods and status codes
+- request validation
+- idempotency
+- API test automation with pytest
+- backend project structure
 
-idempotency
+---
 
-API test automation with pytest
+# Tech Stack
 
-backend project structure
+- Python
+- FastAPI
+- Pydantic
+- Uvicorn
+- pytest
+- FastAPI TestClient
 
-Tech Stack
+---
 
-Python
+# Project Structure
 
-FastAPI
 
-Pydantic
-
-Uvicorn
-
-pytest
-
-FastAPI TestClient
-
-Project Structure
+```
 bug-tracker-api
 │
 ├── app
@@ -50,7 +51,11 @@ bug-tracker-api
 ├── requirements.txt
 ├── README.md
 └── .gitignore
-Running the API
+```
+
+---
+
+# Running the API
 
 Activate the virtual environment:
 
@@ -66,7 +71,9 @@ http://127.0.0.1:8000/docs
 
 FastAPI automatically generates Swagger UI for testing endpoints.
 
-Running Tests
+---
+
+# Running Tests
 
 Run the automated API tests:
 
@@ -74,7 +81,9 @@ python -m pytest
 
 Tests use FastAPI TestClient to simulate HTTP requests against the API.
 
-Data Storage
+---
+
+# Data Storage
 
 This project currently uses an in-memory datastore.
 
@@ -84,22 +93,22 @@ Data is stored in a Python list while the server is running.
 
 Important implications:
 
-data resets when the server restarts
-
-no external database is required
-
-simplifies development and testing
+- data resets when the server restarts
+- no external database is required
+- simplifies development and testing
 
 In a real production service this would likely be replaced with:
 
-PostgreSQL
+- PostgreSQL
+- MySQL
+- MongoDB
 
-MySQL
+---
 
-MongoDB
+# Implemented API Endpoints
 
-Implemented API Endpoints
 Create Bug
+
 POST /bugs
 
 Example request:
@@ -113,12 +122,19 @@ Example request:
 Response:
 
 201 Created
+
+---
+
 Get All Bugs
+
 GET /bugs
 
 Returns a list of bugs.
 
+---
+
 Get Bug by ID
+
 GET /bugs/{id}
 
 Example:
@@ -131,7 +147,10 @@ Possible responses:
 
 404 Not Found
 
+---
+
 Update Bug
+
 PATCH /bugs/{id}
 
 Allows partial updates.
@@ -144,7 +163,10 @@ Example request:
 
 FastAPI automatically validates request fields.
 
+---
+
 Delete Bug
+
 DELETE /bugs/{id}
 
 Possible responses:
@@ -164,19 +186,17 @@ DELETE /bugs/1 → 404
 
 The system state remains unchanged after the first deletion.
 
-Testing Strategy
+---
+
+# Testing Strategy
 
 Tests verify:
 
-successful API operations
-
-validation failures
-
-missing resources
-
-correct HTTP status codes
-
-idempotent behavior
+- successful API operations
+- validation failures
+- missing resources
+- correct HTTP status codes
+- idempotent behavior
 
 Example scenarios tested:
 
@@ -189,44 +209,39 @@ test_delete_bug_is_idempotent
 
 Each test resets the in-memory datastore to ensure test isolation.
 
-Future Improvements
+---
+
+# Future Improvements
 
 Potential enhancements:
 
-filtering bugs (GET /bugs?status=open)
+- filtering bugs (GET /bugs?status=open)
+- pagination
+- authentication / authorization
+- database integration
+- CI pipeline for automated tests
+- rate limiting
 
-pagination
+---
 
-authentication / authorization
-
-database integration
-
-CI pipeline for automated tests
-
-rate limiting
-
-Purpose of This Project
+# Purpose of This Project
 
 This project is designed to:
 
-practice API testing concepts
+- practice API testing concepts
+- demonstrate backend development fundamentals
+- build a portfolio project for SDET / backend engineering roles
 
-demonstrate backend development fundamentals
+---
 
-build a portfolio project for SDET / backend engineering roles
-
-Quick Refresher When Returning to the Project
+# Quick Refresher When Returning to the Project
 
 If you open this project later, the main flow is:
 
-Run the server with uvicorn
-
-Open /docs
-
-Create a bug using POST /bugs
-
-Retrieve bugs using GET /bugs
-
-Run tests with pytest
+1. Run the server with uvicorn
+2. Open /docs
+3. Create a bug using POST /bugs
+4. Retrieve bugs using GET /bugs
+5. Run tests with pytest
 
 The API currently stores bugs in memory inside bugs_db.
