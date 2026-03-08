@@ -8,6 +8,48 @@ This project implements a simple bug tracking service with full CRUD functionali
 
 ---
 
+## Quick Start
+
+Clone the repository:
+
+```bash
+git clone https://github.com/ryancrandall801/bug-tracker-api.git
+cd bug-tracker-api
+```
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the API:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+Open the API documentation:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+Run tests:
+
+```bash
+python -m pytest
+```
+
+---
+
 # Goals
 
 The goal of this project is to better understand:
