@@ -186,3 +186,186 @@ def test_patch_bug_rejects_invalid_status():
     )
 
     assert response.status_code == 422
+
+
+def test_delete_bug_success():
+    reset_bug_store()
+
+    create_response = client.post(
+        "/bugs",
+        json={
+            "title": "Delete me",
+            "description": "Temporary bug",
+            "priority": "medium",
+        },
+    )
+
+    bug_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/bugs/{bug_id}")
+
+    assert delete_response.status_code == 204
+
+    get_response = client.get(f"/bugs/{bug_id}")
+    assert get_response.status_code == 404
+    assert get_response.json() == {"detail": f"Bug with id {bug_id} not found"}
+
+
+def test_delete_bug_returns_404_for_missing_bug():
+    reset_bug_store()
+
+    response = client.delete("/bugs/999")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Bug with id 999 not found"}
+
+
+def test_delete_bug_is_idempotent_in_system_state():
+    reset_bug_store()
+
+    create_response = client.post(
+        "/bugs",
+        json={
+            "title": "Delete twice",
+            "description": "Testing idempotency",
+            "priority": "high",
+        },
+    )
+
+    bug_id = create_response.json()["id"]
+
+    first_delete = client.delete(f"/bugs/{bug_id}")
+    second_delete = client.delete(f"/bugs/{bug_id}")
+    final_get = client.get(f"/bugs/{bug_id}")
+
+    assert first_delete.status_code == 204
+    assert second_delete.status_code == 404
+    assert final_get.status_code == 404
+
+def test_get_bugs_filters_by_status():
+    reset_bug_store()
+
+    first_response = client.post(
+        "/bugs",
+        json={
+            "title": "Open bug",
+            "description": "Still open",
+            "priority": "medium",
+        },
+    )
+
+    second_response = client.post(
+        "/bugs",
+        json={
+            "title": "Resolved bug",
+            "description": "Already fixed",
+            "priority": "high",
+        },
+    )
+
+    second_bug_id = second_response.json()["id"]
+
+    client.patch(
+        f"/bugs/{second_bug_id}",
+        json={"status": "resolved"},
+    )
+
+    response = client.get("/bugs?status=resolved")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["title"] == "Resolved bug"
+    assert response.json()[0]["status"] == "resolved"
+
+
+def test_get_bugs_filters_by_priority():
+    reset_bug_store()
+
+    client.post(
+        "/bugs",
+        json={
+            "title": "Low priority bug",
+            "description": "Minor issue",
+            "priority": "low",
+        },
+    )
+
+    client.post(
+        "/bugs",
+        json={
+            "title": "Critical bug",
+            "description": "Major issue",
+            "priority": "critical",
+        },
+    )
+
+    response = client.get("/bugs?priority=critical")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["title"] == "Critical bug"
+    assert response.json()[0]["priority"] == "critical"
+
+
+def test_get_bugs_filters_by_status_and_priority():
+    reset_bug_store()
+
+    first_response = client.post(
+        "/bugs",
+        json={
+            "title": "Open high bug",
+            "description": "Should match both filters",
+            "priority": "high",
+        },
+    )
+
+    second_response = client.post(
+        "/bugs",
+        json={
+            "title": "Resolved high bug",
+            "description": "Should not match open filter",
+            "priority": "high",
+        },
+    )
+
+    client.post(
+        "/bugs",
+        json={
+            "title": "Open low bug",
+            "description": "Should not match high filter",
+            "priority": "low",
+        },
+    )
+
+    second_bug_id = second_response.json()["id"]
+
+    client.patch(
+        f"/bugs/{second_bug_id}",
+        json={"status": "resolved"},
+    )
+
+    response = client.get("/bugs?status=open&priority=high")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["title"] == "Open high bug"
+    assert response.json()[0]["status"] == "open"
+    assert response.json()[0]["priority"] == "high"
+
+
+def test_get_bugs_filter_returns_empty_list_when_no_matches():
+    reset_bug_store()
+
+    client.post(
+        "/bugs",
+        json={
+            "title": "Only low bug",
+            "description": "No critical bug exists",
+            "priority": "low",
+        },
+    )
+
+    response = client.get("/bugs?priority=critical")
+
+    assert response.status_code == 200
+    assert response.json() == []

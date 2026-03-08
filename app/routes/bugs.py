@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 from app.models import BugCreate, BugResponse, BugUpdate
 
 router = APIRouter(prefix="/bugs", tags=["bugs"])
@@ -26,8 +26,16 @@ def create_bug(bug: BugCreate):
 
 
 @router.get("", response_model=list[BugResponse])
-def get_bugs():
-    return bugs_db
+def get_bugs(status: str | None = None, priority: str | None = None):
+    filtered_bugs = bugs_db
+
+    if status is not None:
+        filtered_bugs = [bug for bug in filtered_bugs if bug["status"] == status]
+
+    if priority is not None:
+        filtered_bugs = [bug for bug in filtered_bugs if bug["priority"] == priority]
+
+    return filtered_bugs
 
 
 @router.get("/{bug_id}", response_model=BugResponse)
@@ -52,6 +60,23 @@ def update_bug(bug_id: int, bug_update: BugUpdate):
                 bug[key] = value
 
             return bug
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Bug with id {bug_id} not found",
+    )
+
+
+@router.delete( 
+    "/{bug_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Bug not found"}},
+)
+def delete_bug(bug_id: int):
+    for index, bug in enumerate(bugs_db):
+        if bug["id"] == bug_id:
+            bugs_db.pop(index)
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
